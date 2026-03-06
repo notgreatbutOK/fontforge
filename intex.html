@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FontForge — Local Font Studio</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Bebas+Neue&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Josefin+Sans:wght@100;300;400;600;700&family=Lora:ital,wght@0,400;0,600;1,400&family=Raleway:wght@100;300;400;600;700;800;900&family=Abril+Fatface&family=Nunito:wght@300;400;600;700;800&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&family=Source+Code+Pro:wght@300;400;500;600&family=Righteous&family=Cinzel:wght@400;600;700&family=Exo+2:ital,wght@0,100;0,300;0,400;0,700;1,400&family=Permanent+Marker&family=Dancing+Script:wght@400;600;700&family=Pacifico&family=Oswald:wght@200;300;400;500;600;700&family=Montserrat:ital,wght@0,100;0,300;0,400;0,700;0,900;1,400&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #0f0e0c;
+  --surface: #161512;
+  --panel: #1a1916;
+  --border: #2a2825;
+  --border-light: #333130;
+  --accent: #f0c040;
+  --accent-dim: rgba(240,192,64,0.12);
+  --accent-glow: rgba(240,192,64,0.06);
+  --text: #f0ede8;
+  --text-dim: #8a8680;
+  --text-faint: #4a4845;
+  --red: #e05a4a;
+  --green: #6abf8a;
+  --blue: #5a9ee0;
+}
+
+html, body { height: 100%; overflow: hidden; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
+  cursor: default;
+  user-select: none;
+}
+
+/* ── TITLEBAR ── */
+.titlebar {
+  height: 42px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 0;
+  flex-shrink: 0;
+  -webkit-app-region: drag;
+}
+
+.titlebar-dots {
+  display: flex;
+  gap: 6px;
+  margin-right: 20px;
+  -webkit-app-region: no-drag;
+}
+
+.dot {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.dot:hover { opacity: 0.8; }
+.dot.red { background: var(--red); }
+.dot.yellow { background: var(--accent); }
+.dot.green { background: var(--green); }
+
+.titlebar-name {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  flex: 1;
+  text-align: center;
+}
+
+.titlebar-actions {
+  display: flex;
+  gap: 2px;
+  -webkit-app-region: no-drag;
+}
+
+.tb-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-transform: uppercase;
+}
+.tb-btn:hover { border-color: var(--accent); color: var(--accent); }
+.tb-btn.active { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+
+/* ── LAYOUT ── */
+.app-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ── LEFT SIDEBAR ── */
+.sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.sidebar-search {
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  padding: 7px 10px;
+  transition: border-color 0.2s;
+}
+.search-wrap:focus-within { border-color: var(--accent); }
+
+.search-wrap svg { flex-shrink: 0; }
+
+.search-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  width: 100%;
+  letter-spacing: 0.5px;
+}
+.search-input::placeholder { color: var(--text-faint); }
+
+/* FILTER PILLS */
+.filter-row {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.fpill {
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  background: transparent;
+  cursor: pointer;
+  font-family: 'DM Mono', monospace;
+  transition: all 0.15s;
+}
+.fpill:hover { border-color: var(--text-dim); color: var(--text); }
+.fpill.on { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+
+/* FONT LIST */
+.font-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px 0;
+}
+
+.font-list::-webkit-scrollbar { width: 3px; }
+.font-list::-webkit-scrollbar-track { background: transparent; }
+.font-list::-webkit-scrollbar-thumb { background: var(--border-light); }
+
+.font-item {
+  padding: 10px 14px;
+  cursor: pointer;
+  border-left: 2px solid transparent;
+  transition: all 0.15s;
+  position: relative;
+}
+
+.font-item:hover { background: var(--panel); }
+.font-item.active {
+  background: var(--accent-dim);
+  border-left-color: var(--accent);
+}
+
+.font-item-name {
+  font-size: 13px;
+  margin-bottom: 3px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.font-item-meta {
+  font-size: 9px;
+  color: var(--text-faint);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  display: flex;
+  gap: 8px;
+}
+
+.font-item-star {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+  opacity: 0;
+  transition: opacity 0.15s;
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: var(--accent);
+}
+.font-item:hover .font-item-star { opacity: 0.4; }
+.font-item-star.starred { opacity: 1 !important; }
+
+.sidebar-footer {
+  padding: 10px 14px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.font-count {
+  font-size: 10px;
+  color: var(--text-faint);
+  letter-spacing: 1px;
+}
+
+.font-count span { color: var(--accent); }
+
+/* ── CENTER CANVAS ── */
+.canvas-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.canvas-toolbar {
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  background: var(--surface);
+}
+
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-right: 12px;
+  border-right: 1px solid var(--border);
+}
+.toolbar-group:last-child { border-right: none; padding-right: 0; }
+
+.toolbar-label {
+  font-size: 9px;
+  color: var(--text-faint);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.size-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 90px;
+  height: 2px;
+  background: var(--border-light);
+  outline: none;
+  cursor: pointer;
+}
+.size-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 10px; height: 10px;
+  background: var(--accent);
+  cursor: pointer;
+  border-radius: 0;
+}
+
+.size-val {
+  font-size: 11px;
+  color: var(--accent);
+  min-width: 28px;
+  text-align: right;
+}
+
+.tgl-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  padding: 4px 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 0.5px;
+}
+.tgl-btn:hover { border-color: var(--text-dim); color: var(--text); }
+.tgl-btn.on { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+
+.weight-select {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  padding: 4px 8px;
+  outline: none;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+}
+
+/* PREVIEW CANVAS */
+.preview-canvas {
+  flex: 1;
+  overflow-y: auto;
+  padding: 40px 48px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  background: var(--bg);
+  position: relative;
+}
+
+.preview-canvas.light-bg { background: #f5f0e8; }
+.preview-canvas.light-bg .preview-main-text { color: #1a1816; }
+.preview-canvas.light-bg .preview-sub-text { color: #6a6560; }
+.preview-canvas.light-bg .preview-alphabet { color: #3a3530; }
+.preview-canvas.light-bg .preview-pangram { color: #5a5550; }
+
+.preview-font-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  margin-bottom: 32px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  align-self: flex-start;
+}
+
+.preview-font-label::after {
+  content: '';
+  width: 60px;
+  height: 1px;
+  background: var(--border-light);
+}
+
+.preview-main-text {
+  font-size: 72px;
+  line-height: 1;
+  color: var(--text);
+  margin-bottom: 8px;
+  text-align: center;
+  max-width: 100%;
+  word-break: break-word;
+  transition: font-family 0.3s ease, font-size 0.15s;
+  outline: none;
+  cursor: text;
+}
+
+.preview-main-text:focus {
+  outline: none;
+}
+
+.preview-sub-text {
+  font-size: 18px;
+  color: var(--text-dim);
+  line-height: 1.6;
+  text-align: center;
+  max-width: 600px;
+  margin-bottom: 48px;
+  transition: font-family 0.3s ease;
+  outline: none;
+  cursor: text;
+}
+
+.preview-divider {
+  width: 100%;
+  height: 1px;
+  background: var(--border);
+  margin: 32px 0;
+}
+
+.preview-section-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  align-self: flex-start;
+  margin-bottom: 16px;
+}
+
+.preview-alphabet {
+  color: var(--text-dim);
+  letter-spacing: 4px;
+  font-size: 15px;
+  line-height: 2.2;
+  text-align: center;
+  transition: font-family 0.3s ease;
+  margin-bottom: 16px;
+}
+
+.preview-weights {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-self: stretch;
+  margin-bottom: 8px;
+}
+
+.weight-row {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+}
+
+.weight-row-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--text-faint);
+  letter-spacing: 1px;
+  width: 60px;
+  flex-shrink: 0;
+}
+
+.weight-row-text {
+  color: var(--text);
+  font-size: 22px;
+  line-height: 1.2;
+  transition: font-family 0.3s ease;
+}
+
+.preview-pangram {
+  font-size: 13px;
+  color: var(--text-faint);
+  letter-spacing: 1px;
+  text-align: center;
+  line-height: 1.8;
+  transition: font-family 0.3s ease;
+  font-style: italic;
+  margin-top: 8px;
+}
+
+/* ── RIGHT PANEL ── */
+.right-panel {
+  width: 280px;
+  flex-shrink: 0;
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.rpanel-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.rtab {
+  flex: 1;
+  padding: 11px 0;
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  text-align: center;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+  background: transparent;
+  border: none;
+  font-family: 'DM Mono', monospace;
+  border-bottom: 2px solid transparent;
+}
+.rtab:hover { color: var(--text); }
+.rtab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+.rpanel-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+.rpanel-content::-webkit-scrollbar { width: 3px; }
+.rpanel-content::-webkit-scrollbar-thumb { background: var(--border-light); }
+
+/* INFO TAB */
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+.info-row:last-child { border-bottom: none; }
+
+.info-key {
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.info-val {
+  font-size: 11px;
+  color: var(--text);
+  text-align: right;
+}
+
+.info-val.accent { color: var(--accent); }
+
+/* PAIRINGS TAB */
+.pairing-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  padding: 14px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+.pairing-card:hover { border-color: var(--accent); }
+.pairing-card.selected { border-color: var(--accent); background: var(--accent-glow); }
+
+.pairing-badge {
+  position: absolute;
+  top: 8px; right: 8px;
+  font-size: 8px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  background: var(--accent-dim);
+  color: var(--accent);
+  font-family: 'DM Mono', monospace;
+}
+
+.pairing-heading {
+  font-size: 20px;
+  line-height: 1.2;
+  margin-bottom: 4px;
+  color: var(--text);
+}
+
+.pairing-body {
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+
+.pairing-names {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.pairing-name {
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: var(--text-faint);
+}
+
+.pairing-plus {
+  font-size: 9px;
+  color: var(--text-faint);
+}
+
+.pairing-why {
+  font-size: 9px;
+  color: var(--text-faint);
+  letter-spacing: 0.5px;
+  margin-top: 8px;
+  line-height: 1.6;
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+}
+
+/* COLLECTIONS TAB */
+.collection-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.collection-item:hover .col-name { color: var(--accent); }
+
+.col-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.col-name {
+  font-size: 11px;
+  color: var(--text);
+  flex: 1;
+  transition: color 0.15s;
+}
+
+.col-count {
+  font-size: 9px;
+  color: var(--text-faint);
+  letter-spacing: 1px;
+}
+
+.add-collection {
+  margin-top: 12px;
+  width: 100%;
+  padding: 8px;
+  background: transparent;
+  border: 1px dashed var(--border-light);
+  color: var(--text-faint);
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+}
+.add-collection:hover { border-color: var(--accent); color: var(--accent); }
+
+/* EXPORT BUTTON */
+.export-bar {
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.export-btn {
+  width: 100%;
+  padding: 10px;
+  background: var(--accent);
+  border: none;
+  color: #0f0e0c;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.export-btn:hover { background: #f5ce50; transform: translateY(-1px); }
+.export-btn:active { transform: translateY(0); }
+
+/* STATUS BAR */
+.statusbar {
+  height: 26px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 24px;
+  flex-shrink: 0;
+}
+
+.status-item {
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--green);
+}
+
+.status-item span { color: var(--text-dim); }
+
+/* ANIMATIONS */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.preview-main-text, .preview-sub-text, .preview-alphabet, .preview-pangram {
+  animation: fadeIn 0.35s ease;
+}
+
+.font-item {
+  animation: fadeIn 0.2s ease both;
+}
+
+/* SCROLLBAR */
+.preview-canvas::-webkit-scrollbar { width: 4px; }
+.preview-canvas::-webkit-scrollbar-track { background: transparent; }
+.preview-canvas::-webkit-scrollbar-thumb { background: var(--border); }
+
+/* Tooltip */
+.tooltip-hint {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  pointer-events: none;
+  opacity: 0.6;
+}
+</style>
+</head>
+<body>
+
+<!-- TITLEBAR -->
+<div class="titlebar">
+  <div class="titlebar-dots">
+    <div class="dot red"></div>
+    <div class="dot yellow"></div>
+    <div class="dot green"></div>
+  </div>
+  <div class="titlebar-name">FontForge — Local Font Studio</div>
+  <div class="titlebar-actions">
+    <button class="tb-btn active" onclick="setMode('preview')">Preview</button>
+    <button class="tb-btn" onclick="setMode('compare')">Compare</button>
+    <button class="tb-btn" onclick="setMode('specimen')">Specimen</button>
+  </div>
+</div>
+
+<!-- APP BODY -->
+<div class="app-body">
+
+  <!-- LEFT SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-search">
+      <div class="search-wrap">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4a4845" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input class="search-input" id="searchInput" placeholder="search fonts..." oninput="filterFonts(this.value)">
+      </div>
+    </div>
+
+    <div class="filter-row">
+      <button class="fpill on" onclick="setFilter(this,'all')">All</button>
+      <button class="fpill" onclick="setFilter(this,'serif')">Serif</button>
+      <button class="fpill" onclick="setFilter(this,'sans')">Sans</button>
+      <button class="fpill" onclick="setFilter(this,'mono')">Mono</button>
+      <button class="fpill" onclick="setFilter(this,'display')">Display</button>
+      <button class="fpill" onclick="setFilter(this,'script')">Script</button>
+      <button class="fpill" onclick="setFilter(this,'starred')">★ Starred</button>
+    </div>
+
+    <div class="font-list" id="fontList"></div>
+
+    <div class="sidebar-footer">
+      <div class="font-count">Showing <span id="visibleCount">20</span> of <span id="totalCount">20</span> fonts</div>
+    </div>
+  </div>
+
+  <!-- CENTER CANVAS -->
+  <div class="canvas-area">
+    <div class="canvas-toolbar">
+      <div class="toolbar-group">
+        <span class="toolbar-label">Size</span>
+        <input type="range" class="size-slider" id="sizeSlider" min="12" max="160" value="72" oninput="updateSize(this.value)">
+        <span class="size-val" id="sizeVal">72</span>
+      </div>
+      <div class="toolbar-group">
+        <span class="toolbar-label">Weight</span>
+        <select class="weight-select" id="weightSelect" onchange="updateWeight(this.value)">
+          <option value="300">Light 300</option>
+          <option value="400" selected>Regular 400</option>
+          <option value="600">SemiBold 600</option>
+          <option value="700">Bold 700</option>
+          <option value="900">Black 900</option>
+        </select>
+      </div>
+      <div class="toolbar-group">
+        <button class="tgl-btn" id="italicBtn" onclick="toggleItalic()">Italic</button>
+        <button class="tgl-btn on" id="bgBtn" onclick="toggleBg()">Dark</button>
+      </div>
+      <div class="toolbar-group">
+        <span class="toolbar-label">View</span>
+        <button class="tgl-btn on" onclick="setView(this,'text')">Text</button>
+        <button class="tgl-btn" onclick="setView(this,'weights')">Weights</button>
+        <button class="tgl-btn" onclick="setView(this,'alpha')">Alphabet</button>
+      </div>
+    </div>
+
+    <div class="preview-canvas" id="previewCanvas">
+      <div class="preview-font-label" id="previewFontLabel">Playfair Display</div>
+      
+      <!-- TEXT VIEW -->
+      <div id="viewText">
+        <div class="preview-main-text" id="mainText" contenteditable="true" spellcheck="false">
+          The Quick Brown Fox
+        </div>
+        <div class="preview-sub-text" id="subText" contenteditable="true" spellcheck="false">
+          Typography is the art of arranging letters with elegance and intent — every typeface tells a story before a single word is read.
+        </div>
+      </div>
+
+      <!-- WEIGHTS VIEW (hidden) -->
+      <div id="viewWeights" style="display:none; width:100%;">
+        <div class="preview-weights" id="weightsDisplay"></div>
+      </div>
+
+      <!-- ALPHABET VIEW (hidden) -->
+      <div id="viewAlpha" style="display:none; text-align:center; width:100%;">
+        <div class="preview-alphabet" id="alphabetDisplay">
+          A B C D E F G H I J K L M N<br>
+          O P Q R S T U V W X Y Z<br>
+          a b c d e f g h i j k l m n<br>
+          o p q r s t u v w x y z<br>
+          0 1 2 3 4 5 6 7 8 9<br>
+          ! @ # $ % & * ( ) ? . , ; :
+        </div>
+        <div class="preview-pangram" id="pangramDisplay">
+          "The five boxing wizards jump quickly over the lazy dog."
+        </div>
+      </div>
+
+      <div class="tooltip-hint">click text to edit · scroll to explore</div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="right-panel">
+    <div class="rpanel-tabs">
+      <button class="rtab active" onclick="setRTab(this,'info')">Info</button>
+      <button class="rtab" onclick="setRTab(this,'pairings')">Pairings</button>
+      <button class="rtab" onclick="setRTab(this,'collections')">Collections</button>
+    </div>
+
+    <div class="rpanel-content" id="rpanelContent">
+      <!-- filled by JS -->
+    </div>
+
+    <div class="export-bar">
+      <button class="export-btn" onclick="exportSpecimen()">↓ Export Specimen</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- STATUS BAR -->
+<div class="statusbar">
+  <div class="status-item"><div class="status-dot"></div> Local — No cloud</div>
+  <div class="status-item">System fonts <span id="statusFont">Playfair Display</span></div>
+  <div class="status-item">Last indexed <span>just now</span></div>
+  <div class="status-item" style="margin-left:auto;">v1.0.0-beta</div>
+</div>
+
+<script>
+// ── FONT DATA ──
+const fonts = [
+  { name: 'Playfair Display', family: 'Playfair Display', cat: 'serif', weights: [400,700,900], styles: ['normal','italic'], designer: 'Claus Eggers Sørensen', year: 2011 },
+  { name: 'Cormorant Garamond', family: 'Cormorant Garamond', cat: 'serif', weights: [300,400,600], styles: ['normal','italic'], designer: 'Christian Thalmann', year: 2015 },
+  { name: 'Crimson Pro', family: 'Crimson Pro', cat: 'serif', weights: [300,400,600], styles: ['normal','italic'], designer: 'Jacques Le Bailly', year: 2018 },
+  { name: 'Libre Baskerville', family: 'Libre Baskerville', cat: 'serif', weights: [400,700], styles: ['normal','italic'], designer: 'Impallari Type', year: 2012 },
+  { name: 'Lora', family: 'Lora', cat: 'serif', weights: [400,600], styles: ['normal','italic'], designer: 'Cyreal', year: 2011 },
+  { name: 'Merriweather', family: 'Merriweather', cat: 'serif', weights: [300,400,700], styles: ['normal','italic'], designer: 'Sorkin Type', year: 2010 },
+  { name: 'Cinzel', family: 'Cinzel', cat: 'display', weights: [400,600,700], styles: ['normal'], designer: 'Natanael Gama', year: 2012 },
+  { name: 'Josefin Sans', family: 'Josefin Sans', cat: 'sans', weights: [100,300,400,600,700], styles: ['normal'], designer: 'Santiago Orozco', year: 2010 },
+  { name: 'Raleway', family: 'Raleway', cat: 'sans', weights: [100,300,400,600,700,800,900], styles: ['normal'], designer: 'Matt McInerney', year: 2010 },
+  { name: 'Oswald', family: 'Oswald', cat: 'sans', weights: [200,300,400,500,600,700], styles: ['normal'], designer: 'Vernon Adams', year: 2011 },
+  { name: 'Montserrat', family: 'Montserrat', cat: 'sans', weights: [100,300,400,700,900], styles: ['normal','italic'], designer: 'Julieta Ulanovsky', year: 2011 },
+  { name: 'Nunito', family: 'Nunito', cat: 'sans', weights: [300,400,600,700,800], styles: ['normal'], designer: 'Vernon Adams', year: 2014 },
+  { name: 'Exo 2', family: 'Exo 2', cat: 'sans', weights: [100,300,400,700], styles: ['normal','italic'], designer: 'Natanael Gama', year: 2013 },
+  { name: 'DM Mono', family: 'DM Mono', cat: 'mono', weights: [300,400,500], styles: ['normal','italic'], designer: 'Colophon Foundry', year: 2014 },
+  { name: 'Space Mono', family: 'Space Mono', cat: 'mono', weights: [400,700], styles: ['normal','italic'], designer: 'Colophon Foundry', year: 2016 },
+  { name: 'Source Code Pro', family: 'Source Code Pro', cat: 'mono', weights: [300,400,500,600], styles: ['normal'], designer: 'Paul D. Hunt', year: 2012 },
+  { name: 'Bebas Neue', family: 'Bebas Neue', cat: 'display', weights: [400], styles: ['normal'], designer: 'Ryoichi Tsunekawa', year: 2010 },
+  { name: 'Abril Fatface', family: 'Abril Fatface', cat: 'display', weights: [400], styles: ['normal'], designer: 'TypeTogether', year: 2011 },
+  { name: 'Righteous', family: 'Righteous', cat: 'display', weights: [400], styles: ['normal'], designer: 'Astigmatic', year: 2012 },
+  { name: 'Dancing Script', family: 'Dancing Script', cat: 'script', weights: [400,600,700], styles: ['normal'], designer: 'Impallari Type', year: 2011 },
+  { name: 'Pacifico', family: 'Pacifico', cat: 'script', weights: [400], styles: ['normal'], designer: 'Vernon Adams', year: 2011 },
+  { name: 'Permanent Marker', family: 'Permanent Marker', cat: 'script', weights: [400], styles: ['normal'], designer: 'Font Diner', year: 2010 },
+];
+
+// PAIRINGS DATA
+const pairings = {
+  'Playfair Display': [
+    { heading: 'Raleway', body: 'Raleway', why: 'High contrast between editorial serif display and geometric sans body. Classic editorial tension.', badge: 'Editorial' },
+    { heading: 'Source Code Pro', body: 'Source Code Pro', why: 'Unexpected pairing — warm humanist serif vs cold monospace creates digital-editorial feel.', badge: 'Modern' },
+    { heading: 'Josefin Sans', body: 'Josefin Sans', why: 'Thin geometric sans-serif body softens the drama of Playfair. Magazine-ready.', badge: 'Magazine' },
+  ],
+  'Bebas Neue': [
+    { heading: 'Merriweather', body: 'Merriweather', why: 'Strong condensed headline with a warm, readable serif body. Poster to long-read transition.', badge: 'Poster' },
+    { heading: 'Nunito', body: 'Nunito', why: 'Rounded body softens the hard edges of Bebas. Friendly but bold.', badge: 'Brand' },
+  ],
+  'Montserrat': [
+    { heading: 'Cormorant Garamond', body: 'Cormorant Garamond', why: 'Clean geometric sans with a delicate old-style serif creates timeless luxury contrast.', badge: 'Luxury' },
+    { heading: 'Lora', body: 'Lora', why: 'Well-tested pairing. Both have warmth. Lora body reads beautifully at small sizes.', badge: 'Classic' },
+  ],
+  'Cormorant Garamond': [
+    { heading: 'Josefin Sans', body: 'Josefin Sans', why: 'Ultra-thin geometric sans vs delicate old-style serif. High contrast, high class.', badge: 'Luxury' },
+    { heading: 'Raleway', body: 'Raleway', why: 'Raleway\'s elegance matches Cormorant. Both feel refined, neither competes.', badge: 'Fashion' },
+  ],
+  'Space Mono': [
+    { heading: 'Playfair Display', body: 'Playfair Display', why: 'Code aesthetic heading with a classical body. Great for developer blogs or tech portfolios.', badge: 'Dev' },
+    { heading: 'Oswald', body: 'Oswald', why: 'Two technically-minded fonts. Oswald body has clarity, Space Mono adds personality.', badge: 'Tech' },
+  ],
+};
+
+// DEFAULT PAIRINGS fallback
+const defaultPairings = [
+  { heading: 'Raleway', body: 'Raleway', why: 'Geometric sans with multiple weights — pairs reliably with most display and serif fonts.', badge: 'Safe' },
+  { heading: 'Merriweather', body: 'Merriweather', why: 'Warm, readable serif. Contrasts well against bold display fonts.', badge: 'Classic' },
+];
+
+// COLLECTIONS
+const collections = [
+  { name: 'Branding', color: '#f0c040', count: 4 },
+  { name: 'Editorial', color: '#5affb8', count: 7 },
+  { name: 'Dev Projects', color: '#5ab4ff', count: 3 },
+  { name: 'Poster Work', color: '#e05a4a', count: 5 },
+  { name: 'Client — Aria Co.', color: '#c4a8ff', count: 2 },
+];
+
+// STATE
+let currentFont = fonts[0];
+let activeFilter = 'all';
+let searchQuery = '';
+let currentWeight = 400;
+let isItalic = false;
+let isDark = true;
+let currentView = 'text';
+let currentRTab = 'info';
+let starred = new Set(['Playfair Display', 'Cormorant Garamond', 'Bebas Neue']);
+
+// ── INIT ──
+function init() {
+  renderFontList();
+  selectFont(fonts[0]);
+}
+
+// ── FONT LIST ──
+function getFilteredFonts() {
+  return fonts.filter(f => {
+    const matchSearch = f.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchFilter = 
+      activeFilter === 'all' ? true :
+      activeFilter === 'starred' ? starred.has(f.name) :
+      f.cat === activeFilter;
+    return matchSearch && matchFilter;
+  });
+}
+
+function renderFontList() {
+  const filtered = getFilteredFonts();
+  const list = document.getElementById('fontList');
+  list.innerHTML = '';
+  
+  filtered.forEach((f, i) => {
+    const item = document.createElement('div');
+    item.className = 'font-item' + (f.name === currentFont.name ? ' active' : '');
+    item.style.animationDelay = (i * 0.02) + 's';
+    item.onclick = () => selectFont(f);
+    item.innerHTML = `
+      <div class="font-item-name" style="font-family:'${f.family}',serif">${f.name}</div>
+      <div class="font-item-meta">
+        <span>${f.cat}</span>
+        <span>${f.weights.length} weights</span>
+      </div>
+      <button class="font-item-star ${starred.has(f.name) ? 'starred' : ''}" onclick="toggleStar(event,'${f.name}')">★</button>
+    `;
+    list.appendChild(item);
+  });
+
+  document.getElementById('visibleCount').textContent = filtered.length;
+  document.getElementById('totalCount').textContent = fonts.length;
+}
+
+function toggleStar(e, name) {
+  e.stopPropagation();
+  if (starred.has(name)) starred.delete(name);
+  else starred.add(name);
+  renderFontList();
+}
+
+function filterFonts(val) {
+  searchQuery = val;
+  renderFontList();
+}
+
+function setFilter(btn, filter) {
+  document.querySelectorAll('.fpill').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  activeFilter = filter;
+  renderFontList();
+}
+
+// ── SELECT FONT ──
+function selectFont(f) {
+  currentFont = f;
+  applyFont();
+  renderFontList();
+  updateRPanel();
+  document.getElementById('previewFontLabel').textContent = f.name;
+  document.getElementById('statusFont').textContent = f.name;
+
+  // update weight select options
+  const ws = document.getElementById('weightSelect');
+  ws.innerHTML = '';
+  const weightNames = { 100:'Thin',200:'ExtraLight',300:'Light',400:'Regular',500:'Medium',600:'SemiBold',700:'Bold',800:'ExtraBold',900:'Black' };
+  f.weights.forEach(w => {
+    const opt = document.createElement('option');
+    opt.value = w;
+    opt.textContent = `${weightNames[w]||w} ${w}`;
+    if (w === 400 || (w === f.weights[0] && !f.weights.includes(400))) opt.selected = true;
+    ws.appendChild(opt);
+  });
+  currentWeight = f.weights.includes(400) ? 400 : f.weights[0];
+  applyFont();
+}
+
+function applyFont() {
+  const ff = `'${currentFont.family}', serif`;
+  const style = isItalic ? 'italic' : 'normal';
+  
+  [document.getElementById('mainText'),
+   document.getElementById('subText'),
+   document.getElementById('alphabetDisplay'),
+   document.getElementById('pangramDisplay')
+  ].forEach(el => {
+    if(el) {
+      el.style.fontFamily = ff;
+      el.style.fontWeight = currentWeight;
+      el.style.fontStyle = style;
+    }
+  });
+
+  // weights display
+  renderWeightsView();
+}
+
+function renderWeightsView() {
+  const container = document.getElementById('weightsDisplay');
+  if(!container) return;
+  const weightNames = { 100:'Thin',200:'ExtraLight',300:'Light',400:'Regular',500:'Medium',600:'SemiBold',700:'Bold',800:'ExtraBold',900:'Black' };
+  container.innerHTML = currentFont.weights.map(w => `
+    <div class="weight-row">
+      <div class="weight-row-label">${weightNames[w]||w} ${w}</div>
+      <div class="weight-row-text" style="font-family:'${currentFont.family}',serif;font-weight:${w};">
+        The Quick Brown Fox Jumps
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── TOOLBAR CONTROLS ──
+function updateSize(val) {
+  document.getElementById('sizeVal').textContent = val;
+  const el = document.getElementById('mainText');
+  if(el) el.style.fontSize = val + 'px';
+}
+
+function updateWeight(val) {
+  currentWeight = parseInt(val);
+  applyFont();
+}
+
+function toggleItalic() {
+  isItalic = !isItalic;
+  document.getElementById('italicBtn').classList.toggle('on', isItalic);
+  applyFont();
+}
+
+function toggleBg() {
+  isDark = !isDark;
+  const canvas = document.getElementById('previewCanvas');
+  canvas.classList.toggle('light-bg', !isDark);
+  document.getElementById('bgBtn').textContent = isDark ? 'Dark' : 'Light';
+  document.getElementById('bgBtn').classList.toggle('on', isDark);
+}
+
+function setView(btn, view) {
+  document.querySelectorAll('.canvas-toolbar .tgl-btn').forEach(b => {
+    if(['text','weights','alpha'].some(v => b.getAttribute('onclick')?.includes(v))) b.classList.remove('on');
+  });
+  btn.classList.add('on');
+  currentView = view;
+  
+  document.getElementById('viewText').style.display = view === 'text' ? '' : 'none';
+  document.getElementById('viewWeights').style.display = view === 'weights' ? 'block' : 'none';
+  document.getElementById('viewAlpha').style.display = view === 'alpha' ? 'block' : 'none';
+  
+  if(view === 'weights') renderWeightsView();
+}
+
+function setMode(mode) {
+  document.querySelectorAll('.tb-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+// ── RIGHT PANEL ──
+function setRTab(btn, tab) {
+  document.querySelectorAll('.rtab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentRTab = tab;
+  updateRPanel();
+}
+
+function updateRPanel() {
+  const content = document.getElementById('rpanelContent');
+  
+  if(currentRTab === 'info') {
+    const f = currentFont;
+    content.innerHTML = `
+      <div style="margin-bottom:16px;">
+        <div style="font-size:28px;font-family:'${f.family}',serif;margin-bottom:4px;color:var(--text);">${f.name}</div>
+        <div style="font-size:10px;color:var(--text-faint);letter-spacing:1.5px;text-transform:uppercase;">${f.cat} typeface</div>
+      </div>
+      ${[
+        ['Category', f.cat.charAt(0).toUpperCase()+f.cat.slice(1)],
+        ['Weights', f.weights.join(', ')],
+        ['Styles', f.styles.join(', ')],
+        ['Designer', f.designer],
+        ['Year', f.year],
+        ['License', 'Open Font License'],
+        ['Source', 'Google Fonts'],
+        ['Status', '✓ Installed'],
+      ].map(([k,v]) => `
+        <div class="info-row">
+          <div class="info-key">${k}</div>
+          <div class="info-val ${k==='Status'?'accent':''}">${v}</div>
+        </div>
+      `).join('')}
+
+      <div style="margin-top:20px;">
+        <div class="preview-section-label" style="margin-bottom:12px;">Quick Sample</div>
+        <div style="font-family:'${f.family}',serif;font-size:32px;color:var(--text);line-height:1.3;margin-bottom:8px;">Aa Bb Cc</div>
+        <div style="font-family:'${f.family}',serif;font-size:13px;color:var(--text-dim);line-height:1.7;">The art of typography is essentially the art of good judgment about letter forms and their relationships.</div>
+      </div>
+    `;
+  }
+
+  else if(currentRTab === 'pairings') {
+    const pairs = pairings[currentFont.name] || defaultPairings;
+    content.innerHTML = `
+      <div style="font-size:10px;color:var(--text-faint);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:14px;">Suggested Pairings for ${currentFont.name}</div>
+      ${pairs.map((p, i) => `
+        <div class="pairing-card ${i===0?'selected':''}" onclick="this.parentElement.querySelectorAll('.pairing-card').forEach(c=>c.classList.remove('selected'));this.classList.add('selected')">
+          <div class="pairing-badge">${p.badge}</div>
+          <div class="pairing-heading" style="font-family:'${currentFont.family}',serif;">Display Heading</div>
+          <div class="pairing-body" style="font-family:'${p.body}',sans-serif;">Body text in ${p.body}. Readable and clean at smaller sizes.</div>
+          <div class="pairing-names">
+            <span class="pairing-name" style="font-family:'${currentFont.family}',serif;">${currentFont.name}</span>
+            <span class="pairing-plus">+</span>
+            <span class="pairing-name">${p.heading}</span>
+          </div>
+          <div class="pairing-why">${p.why}</div>
+        </div>
+      `).join('')}
+    `;
+  }
+
+  else if(currentRTab === 'collections') {
+    content.innerHTML = `
+      <div style="font-size:10px;color:var(--text-faint);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:14px;">Your Collections</div>
+      ${collections.map(c => `
+        <div class="collection-item">
+          <div class="col-dot" style="background:${c.color}"></div>
+          <div class="col-name">${c.name}</div>
+          <div class="col-count">${c.count} fonts</div>
+        </div>
+      `).join('')}
+      <button class="add-collection" onclick="alert('Create new collection')">+ New Collection</button>
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
+        <div style="font-size:10px;color:var(--text-faint);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;">Add to collection</div>
+        ${collections.map(c => `
+          <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);cursor:pointer;" onclick="this.querySelector('input').checked=!this.querySelector('input').checked">
+            <input type="checkbox" style="accent-color:var(--accent)">
+            <span style="font-size:11px;color:var(--text);">${c.name}</span>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+}
+
+function exportSpecimen() {
+  const btn = document.querySelector('.export-btn');
+  btn.textContent = '✓ Specimen Exported';
+  btn.style.background = 'var(--green)';
+  setTimeout(() => {
+    btn.textContent = '↓ Export Specimen';
+    btn.style.background = '';
+  }, 2000);
+}
+
+// ── START ──
+init();
+</script>
+</body>
+</html>
